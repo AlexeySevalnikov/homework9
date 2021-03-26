@@ -1,0 +1,5 @@
+MyCollection.java
+ MyCollection
+ MyCollection$MyIterator
+MainCollectionMethod.java
+ MainCollectionMethod
