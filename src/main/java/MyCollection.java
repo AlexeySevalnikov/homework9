@@ -45,7 +45,9 @@ public class MyCollection<E> implements Collection<E> {
     @Override
     public boolean contains(final Object o) {
         for (int i = 0; i < elementData.length; i++) {
-            if (o.equals(elementData[i])) {
+            if (o == null) {
+                return true;
+            } else if (o.equals(elementData[i])) {
                 return true;
             }
         }
@@ -64,9 +66,6 @@ public class MyCollection<E> implements Collection<E> {
             return (T[]) Arrays.copyOf(elementData, size, a.getClass());
         }
         System.arraycopy(elementData, 0, a, 0, size);
-        if (a.length > size) {
-            a[size] = null;
-        }
         return a;
     }
 
@@ -104,12 +103,15 @@ public class MyCollection<E> implements Collection<E> {
         int countElem = 0;
         for (Object n : c) {
             for (int i = 0; i < elementData.length; i++) {
-                if (n.equals(elementData[i])) {
+                if (n == null) {
+                    countElem++;
+                } else if (n.equals(elementData[i])) {
                     countElem++;
                 }
             }
         }
-        return count == countElem;
+        countElem--;
+        return count <= countElem;
     }
 
     @Override
@@ -130,10 +132,15 @@ public class MyCollection<E> implements Collection<E> {
 
     @Override
     public boolean retainAll(final Collection<?> c) {
-        MyCollection<Object> helpColl = new MyCollection<>();
-        helpColl.addAll(Arrays.asList(elementData));
-        helpColl.removeAll(c);
-        return removeAll(helpColl);
+        boolean result = false;
+        Iterator it = this.iterator();
+        while (it.hasNext()) {
+            if (!c.contains(it.next())) {
+                result = true;
+                it.remove();
+            }
+        }
+        return result;
     }
 
     @Override
@@ -146,6 +153,7 @@ public class MyCollection<E> implements Collection<E> {
 
     private class MyIterator<T> implements Iterator<T> {
         int cursor = 0;
+        boolean canNext;
 
         @Override
         public boolean hasNext() {
@@ -157,16 +165,17 @@ public class MyCollection<E> implements Collection<E> {
             if (cursor >= size) {
                 throw new NoSuchElementException();
             }
+            canNext = true;
             return (T) elementData[cursor++];
         }
 
         @Override
         public void remove() {
-            if (cursor == 0) {
+            if (!canNext) {
                 throw new IllegalStateException();
             }
-            MyCollection.this.remove(elementData[cursor]);
-            cursor = 0;
+            MyCollection.this.remove(elementData[--cursor]);
+            canNext = false;
         }
     }
 }
